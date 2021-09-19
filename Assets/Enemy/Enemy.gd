@@ -6,7 +6,7 @@ extends KinematicBody
 export var move_speed = 1.0
 
 """ The frequency of path calculation  """
-export var frequency_path_calculation = 0.1
+export var frequency_path_calculation = 0.5
 
 """ The frequency damage """
 export var damage_frequency = 0.5
@@ -14,10 +14,16 @@ export var damage_frequency = 0.5
 """ The amont of damage for each attack """
 export var damage_quantity = 20.0
 
+""" The max life value """
+export var max_life = 100.0
+
 # Onready variables ############################################################
 
 """ The player """
 onready var _player = $"../../Player"
+
+""" The body """
+onready var _body = $Body
 
 """ The navigation mesh """
 onready var _nav = get_parent()
@@ -36,12 +42,17 @@ var _path_node = 0
 """ The delta time """
 var _delta = 0.0
 
+""" The life """
+var _life = max_life
+
 # Engine override ##############################################################
 
 """
 Executed when node is ready
 """
 func _ready() -> void:
+    assert(max_life > 0.0, "The MAX life MUST be greater than 0")
+
     _calculation_path_timer.wait_time = frequency_path_calculation
 
 
@@ -99,6 +110,23 @@ Executed when a collide with the player is detected
 """
 func _on_collide_with_player(player) -> void:
     player.loose_life(damage_quantity);
+
+
+# Public functions #############################################################
+
+"""
+The life to loose
+
+:param value: The life to loose
+"""
+func loose_life(value: float) -> void:
+    _life -= value
+
+    if _life <= 0.0:
+        queue_free()
+    else:
+        _body.get_material().albedo_color = Color(_life / max_life, 0, 0, 1)
+        
 
 # Signals ######################################################################
 

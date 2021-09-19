@@ -73,6 +73,9 @@ onready var _camera = $Head/Camera
 """ The HUD """
 onready var _hud = $HUD
 
+""" The shot raycast """
+onready var _shot_ray_cast = $Head/ShotRayCast
+
 # Private variables ############################################################
 
 """ The current movement speed """
@@ -97,6 +100,7 @@ func _ready() -> void:
 
     _camera.set_fov(fov)
     _hud.set_life(_life)
+    _shot_ray_cast.set_cast_to(Vector3(0, -1e6, 0))
 
 
 """
@@ -168,7 +172,10 @@ func _input(event) -> void:
         print("Crouch")
 
     if can_shot and event.is_action_pressed("shot"):
-        print("Shot")
+        var collider = _shot_ray_cast.get_collider()
+        
+        if collider != null and collider.is_in_group("enemy"):
+            collider.loose_life(10.0)
 
     if can_shot and event.is_action_pressed("reload"):
         print("Reload")
@@ -200,7 +207,7 @@ func get_max_life() -> float:
 
 
 """
-The life to loose
+Loose the specified life quantity
 
 :param value: The life to loose
 """
@@ -213,7 +220,7 @@ func loose_life(value: float) -> void:
     _hud.set_life(_life)
 
 """
-The life to gain
+Gain the specified life quantity
 
 :param value: The life to gain
 """
