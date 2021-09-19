@@ -59,6 +59,9 @@ export var can_interract = true
 """ The flag indicate if the player can flashlight or not """
 export var can_flashlight = true
 
+""" The max life value """
+export var max_life = 100.0
+
 # Onready variables ############################################################
 
 """ The head spatial node """
@@ -66,6 +69,9 @@ onready var _head = $Head
 
 """ The main camera node """
 onready var _camera = $Head/Camera
+
+""" The HUD """
+onready var _hud = $HUD
 
 # Private variables ############################################################
 
@@ -75,15 +81,22 @@ var _movement_speed = walk_speed
 """ The velocity """
 var _velocity = Vector3()
 
+""" The life """
+var _life = max_life
+
 # Engine override ##############################################################
 
 """
-Executed on node is ready
+Executed when node is ready
 """
 func _ready() -> void:
+    assert(fov > 0.0, "The FOV MUST be greater than 0.0")
+    assert(max_life > 0.0, "The max life MUST be greater than 0.0")
+
     Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
     _camera.set_fov(fov)
+    _hud.set_life(_life)
 
 
 """
@@ -165,6 +178,52 @@ func _input(event) -> void:
 
     if can_interract and event.is_action_pressed("flashlight"):
         print("Flashlight")
+
+# Public functions #############################################################
+
+"""
+Get the life
+
+:return: The life
+"""
+func get_life() -> float:
+    return _life
+
+
+"""
+Get the max life
+
+:return: The max life
+"""
+func get_max_life() -> float:
+    return max_life
+
+
+"""
+The life to loose
+
+:param value: The life to loose
+"""
+func loose_life(value: float) -> void:
+    _life -= value
+
+    if _life < 0.0:
+        _life = 0.0
+
+    _hud.set_life(_life)
+
+"""
+The life to gain
+
+:param value: The life to gain
+"""
+func gain_life(value: float) -> void:
+    _life += value
+
+    if _life > max_life:
+        _life = max_life
+
+    _hud.set_life(_life)
 
 # Private functions ############################################################
 
