@@ -294,7 +294,7 @@ public class Player : KinematicBody
             );
         }
 
-        if (@event.IsActionPressed(_runInput))
+        if (_canRun && @event.IsActionPressed(_runInput))
         {
             _movementSpeed = _runSpeed;
         }
@@ -328,12 +328,12 @@ public class Player : KinematicBody
             GD.Print("Reload");
         }
 
-        if (_canShot && @event.IsActionPressed(_shotInput))
+        if (_canInterract && @event.IsActionPressed(_interractInput))
         {
             GD.Print("Interract");
         }
 
-        if (_canInterract && @event.IsActionPressed(_flashlightInput))
+        if (_canFlashlight && @event.IsActionPressed(_flashlightInput))
         {
             GD.Print("Flashlight");
         }

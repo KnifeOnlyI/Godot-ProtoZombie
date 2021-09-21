@@ -71,6 +71,17 @@ public class Enemy : KinematicBody
     private float _life;
 
     /// <summary>
+    /// Executed on package scene
+    /// </summary>
+    /// <param name="player">The player</param>
+    /// <param name="nav">The navigation</param>
+    public void _Init(Player player, Navigation nav)
+    {
+        _player = player;
+        _nav = nav;
+    }
+    
+    /// <summary>
     /// Executed when the node is ready
     /// </summary>
     /// <exception cref="System.Exception">If the max life is lower or equals than 0.0f</exception>
@@ -81,15 +92,17 @@ public class Enemy : KinematicBody
             throw new System.Exception("The max life MUST be greater than 0.0f");
         }
 
-        _player = (KinematicBody) GetNode("../../Player");
-        _body = (CSGMesh) GetNode("Body");
-        _nav = (Navigation) GetParent();
-        _calculationPathTimer = (Timer) GetNode("CalculationPathTimer");
+        _body = (CSGMesh) GetNode("./Body");
+        _calculationPathTimer = (Timer) GetNode("./CalculationPathTimer");
 
         _calculationPathTimer.WaitTime = _frequencyPathCalculation;
         _life = _maxLife;
         
         MoveTo(_player.GlobalTransform.origin);
+
+        _body.Material = new SpatialMaterial();
+        
+        UpdateColor();
     }
 
     /// <summary>
@@ -159,6 +172,14 @@ public class Enemy : KinematicBody
     }
 
     /// <summary>
+    /// Update the body color according to the life
+    /// </summary>
+    private void UpdateColor()
+    {
+        ((SpatialMaterial) _body.Material).AlbedoColor = new Color(_life / _maxLife, 0.0f, 0.0f);
+    }
+
+    /// <summary>
     /// Loose the specified amount of life
     /// </summary>
     /// <param name="value">The life to loose</param>
@@ -172,7 +193,7 @@ public class Enemy : KinematicBody
         }
         else
         {
-            ((SpatialMaterial) _body.Material).AlbedoColor = new Color(_life / _maxLife, 0.0f, 0.0f);
+            UpdateColor();
         }
     }
 
