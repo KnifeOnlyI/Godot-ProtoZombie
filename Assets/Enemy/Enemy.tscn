@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=2]
 
-[ext_resource path="res://Assets/Enemy/Enemy.gd" type="Script" id=1]
+[ext_resource path="res://Assets/Enemy/Enemy.cs" type="Script" id=1]
 
 [sub_resource type="CapsuleMesh" id=1]
 radius = 0.5
