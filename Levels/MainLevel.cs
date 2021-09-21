@@ -8,7 +8,7 @@ public class MainLevel : Spatial
     /// <summary>
     /// The maximum number of enemies can exists at same time
     /// </summary>
-    [Export] private ushort _maxNbEnemies = 3;
+    [Export] private ushort _maxNbEnemies = 20;
 
     /// <summary>
     /// The enemy packaged scene

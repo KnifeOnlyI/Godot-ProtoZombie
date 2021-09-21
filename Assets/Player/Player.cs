@@ -1,4 +1,8 @@
 using Godot;
+using ProtoZombie.Scripts.Inventory;
+using ProtoZombie.Scripts.Weapon;
+using ProtoZombie.Scripts.Weapon.Ammo;
+using ProtoZombie.Scripts.Weapon.Weapon;
 
 /// <summary>
 /// Represent the player
@@ -14,12 +18,12 @@ public class Player : KinematicBody
     /// The camera FOV
     /// </summary>
     [Export] private float _fov = 70.0f;
-    
+
     /// <summary>
     /// The minimum camera angle
     /// </summary>
     [Export] private float _minCameraAngle = -89.0f;
-    
+
     /// <summary>
     /// The maximum camera angle
     /// </summary>
@@ -29,52 +33,72 @@ public class Player : KinematicBody
     /// The move forward input
     /// </summary>
     [Export] private string _moveForwardInput = "move_forward";
-    
+
     /// <summary>
     /// The move backward input
     /// </summary>
     [Export] private string _moveBackwardInput = "move_backward";
-    
+
     /// <summary>
     /// The move left input
     /// </summary>
     [Export] private string _moveLeftInput = "move_left";
-    
+
     /// <summary>
     /// The move right input
     /// </summary>
     [Export] private string _moveRightInput = "move_right";
-    
+
     /// <summary>
     /// The run input
     /// </summary>
     [Export] private string _runInput = "run";
-    
+
     /// <summary>
     /// The jump input
     /// </summary>
     [Export] private string _jumpInput = "jump";
-    
+
     /// <summary>
     /// The crouch input
     /// </summary>
     [Export] private string _crouchInput = "crouch";
-    
+
     /// <summary>
     /// The shot input
     /// </summary>
     [Export] private string _shotInput = "shot";
-    
+
     /// <summary>
     /// The reload input
     /// </summary>
     [Export] private string _reloadInput = "reload";
-    
+
+    /// <summary>
+    /// The fetch ammo input
+    /// </summary>
+    [Export] private string _fetchAmmoInput = "fetch_ammo";
+
+    /// <summary>
+    /// The switch weapon up input
+    /// </summary>
+    [Export] private string _switchWeaponUpInput = "switch_weapon_up";
+
+    /// <summary>
+    /// The switch weapon down input
+    /// </summary>
+    [Export] private string _switchWeaponDownInput = "switch_weapon_down";
+
+    /// <summary>
+    /// The unequip weapon input
+    /// </summary>
+    [Export] private string _unequipWeaponInput = "unequip_weapon";
+
     /// <summary>
     /// The interract input
     /// </summary>
     [Export] private string _interractInput = "interract";
-    
+
     /// <summary>
     /// The flashlight input
     /// </summary>
@@ -84,12 +108,12 @@ public class Player : KinematicBody
     /// The crouch speed
     /// </summary>
     [Export] private float _crouchSpeed = 1.0f;
-    
+
     /// <summary>
     /// The walk speed
     /// </summary>
     [Export] private float _walkSpeed = 2.0f;
-    
+
     /// <summary>
     /// The run speed
     /// </summary>
@@ -99,7 +123,7 @@ public class Player : KinematicBody
     /// The gravity factor
     /// </summary>
     [Export] private float _gravity = 9.81f;
-    
+
     /// <summary>
     /// The jump strength
     /// </summary>
@@ -109,27 +133,32 @@ public class Player : KinematicBody
     /// TRUE to indicates the player can crouch, FALSE otherwise
     /// </summary>
     [Export] private bool _canCrouch = true;
-    
+
     /// <summary>
     /// TRUE to indicates the player can run, FALSE otherwise
     /// </summary>
     [Export] private bool _canRun = true;
-    
+
     /// <summary>
     /// TRUE to indicates the player can jump, FALSE otherwise
     /// </summary>
     [Export] private bool _canJump = true;
-    
+
     /// <summary>
     /// TRUE to indicates the player can shot, FALSE otherwise
     /// </summary>
     [Export] private bool _canShot = true;
-    
+
+    /// <summary>
+    /// TRUE to indicates the player can fetch ammo, FALSE otherwise (FALSE if the can shot is FALSE)
+    /// </summary>
+    [Export] private bool _canFetchAmmo = true;
+
     /// <summary>
     /// TRUE to indicates the player can interract, FALSE otherwise
     /// </summary>
     [Export] private bool _canInterract = true;
-    
+
     /// <summary>
     /// TRUE to indicates the player can flashlight, FALSE otherwise
     /// </summary>
@@ -144,36 +173,56 @@ public class Player : KinematicBody
     /// The head node
     /// </summary>
     private Spatial _head;
-    
+
     /// <summary>
     /// The camera node
     /// </summary>
     private Camera _camera;
-    
+
     /// <summary>
     /// The HUD control node
     /// </summary>
     private HUD _hud;
-    
+
     /// <summary>
     /// The shot raycast node
     /// </summary>
     private RayCast _shotRaycast;
 
     /// <summary>
+    /// The shot audio stream
+    /// </summary>
+    private AudioStreamPlayer3D _shotAudioStream;
+
+    /// <summary>
     /// The movement speed
     /// </summary>
     private float _movementSpeed;
-    
+
     /// <summary>
     /// The movement velocity
     /// </summary>
     private Vector3 _velocity;
-    
+
     /// <summary>
     /// The life 
     /// </summary>
     private float _life;
+
+    /// <summary>
+    /// The inventory
+    /// </summary>
+    private readonly IInventory _inventory = new Inventory();
+
+    /// <summary>
+    /// The current equiped weapon
+    /// </summary>
+    private IWeapon _weapon;
+
+    /// <summary>
+    /// Determine if in shot or not (used for full-auto shot type)
+    /// </summary>
+    private bool _inShot;
 
     /// <summary>
     /// Executed when the node is ready
@@ -212,18 +261,25 @@ public class Player : KinematicBody
             throw new System.Exception("The run speed MUST be greater than 0.0f");
         }
 
+        Input.SetMouseMode(Input.MouseMode.Captured);
+
         _head = (Spatial) GetNode("Head");
         _camera = (Camera) _head.GetNode("Camera");
         _hud = (HUD) GetNode("HUD");
         _shotRaycast = (RayCast) _head.GetNode("ShotRaycast");
+        _shotAudioStream = (AudioStreamPlayer3D) GetNode("ShotAudioStream");
         _movementSpeed = _walkSpeed;
         _life = _maxLife;
-
-        Input.SetMouseMode(Input.MouseMode.Captured);
-
         _camera.Fov = _fov;
-        _hud.SetLife(_life);
         _shotRaycast.CastTo = new Vector3(0.0f, -1e6f, 0.0f);
+        _canFetchAmmo = _canFetchAmmo && _canShot;
+
+        _inventory.AddWeapon(new Glock17());
+        _inventory.AddWeapon(new Mp5());
+
+        _inventory.GetReserve(AmmoType.Mm9).SetQuantity(30);
+
+        UpdateHud();
     }
 
     /// <summary>
@@ -231,6 +287,125 @@ public class Player : KinematicBody
     /// </summary>
     /// <param name="delta">The delta time in seconds</param>
     public override void _PhysicsProcess(float delta)
+    {
+        if (_canShot)
+        {
+            ProcessWeapons(delta);
+        }
+
+        ProcessMovement(delta);
+    }
+
+    /// <summary>
+    /// Executed when an input is detected
+    /// </summary>
+    /// <param name="event">The detected event</param>
+    public override void _Input(InputEvent @event)
+    {
+        if (@event is InputEventMouseMotion motion && Input.GetMouseMode() == Input.MouseMode.Captured)
+        {
+            RotateCamera(
+                motion.Relative.x * _mouseSensitivity,
+                motion.Relative.y * -_mouseSensitivity
+            );
+        }
+
+        if (_canRun && @event.IsActionPressed(_runInput))
+        {
+            _movementSpeed = _runSpeed;
+        }
+        else if (@event.IsActionReleased(_runInput))
+        {
+            _movementSpeed = _walkSpeed;
+        }
+
+        if (_canJump && @event.IsActionPressed(_jumpInput) && IsOnFloor())
+        {
+            _velocity.y += _jumpStrength;
+        }
+
+        if (_canCrouch && @event.IsActionPressed(_crouchInput))
+        {
+            GD.Print("Crouch");
+        }
+
+        if (_canShot && @event.IsActionPressed(_reloadInput))
+        {
+            Reload();
+        }
+
+        if (_canFetchAmmo && @event.IsActionPressed(_fetchAmmoInput))
+        {
+            FetchAmmo();
+        }
+
+        if (_canShot && @event.IsActionPressed(_switchWeaponUpInput))
+        {
+            SwitchWeaponUp();
+        }
+
+        if (_canShot && @event.IsActionPressed(_switchWeaponDownInput))
+        {
+            SwitchWeaponDown();
+        }
+
+        if (_canShot && @event.IsActionPressed(_unequipWeaponInput))
+        {
+            UnequipWeapon();
+        }
+
+        if (_canInterract && @event.IsActionPressed(_interractInput))
+        {
+            GD.Print("Interract");
+        }
+
+        if (_canFlashlight && @event.IsActionPressed(_flashlightInput))
+        {
+            GD.Print("Flashlight");
+        }
+    }
+
+    /// <summary>
+    /// Loose the specified life
+    /// </summary>
+    /// <param name="value">The life to loose</param>
+    public void LooseLife(float value)
+    {
+        _life -= value;
+
+        if (_life < 0.0f)
+        {
+            _life = 0.0f;
+        }
+
+        _hud.SetLife(_life);
+    }
+
+    /// <summary>
+    /// Process the weapons actions according to the specified delta
+    /// </summary>
+    /// <param name="delta">The delta in seconds</param>
+    private void ProcessWeapons(float delta)
+    {
+        _weapon?.Update(delta);
+
+        // TODO Set a shot end sound to avoid jerks when shot multiple times
+        
+        if (Input.IsActionPressed(_shotInput))
+        {
+            Shot();
+        }
+        else if (Input.IsActionJustReleased(_shotInput))
+        {
+            _inShot = false;
+        }
+    }
+
+    /// <summary>
+    /// Process the movement according to the specified delta
+    /// </summary>
+    /// <param name="delta">The delta in seconds</param>
+    private void ProcessMovement(float delta)
     {
         var direction = new Vector3();
         var inputMovementVector = new Vector2();
@@ -281,62 +456,108 @@ public class Player : KinematicBody
     }
 
     /// <summary>
-    /// Executed when an input is detected
+    /// Perform a shot with the current equiped weapon
     /// </summary>
-    /// <param name="event">The detected event</param>
-    public override void _Input(InputEvent @event)
+    private void Shot()
     {
-        if (@event is InputEventMouseMotion motion && Input.GetMouseMode() == Input.MouseMode.Captured)
+        if (_weapon == null || _weapon.GetShotType() == ShotType.SemiAuto && _inShot || _weapon.Shot() <= 0) return;
+
+        _inShot = true;
+
+        _shotAudioStream.Play();
+
+        UpdateWeaponHud();
+
+        var collider = (Node) _shotRaycast.GetCollider();
+
+        if (collider != null && collider.IsInGroup("enemy"))
         {
-            RotateCamera(
-                motion.Relative.x * _mouseSensitivity,
-                motion.Relative.y * -_mouseSensitivity
-            );
+            ((Enemy) collider).LooseLife(_weapon.GetDamage());
+        }
+    }
+
+    /// <summary>
+    /// Reload the current equiped weapon
+    /// </summary>
+    private void Reload()
+    {
+        if (_weapon?.Reload(_inventory.GetReserve(_weapon.GetAmmoType())) <= 0) return;
+
+        UpdateWeaponHud();
+    }
+
+    /// <summary>
+    /// Fetch the ammo in the current equiped weapon and put into the current equiped reserve
+    /// </summary>
+    private void FetchAmmo()
+    {
+        if (_weapon?.Fetch(_inventory.GetReserve(_weapon.GetAmmoType())) <= 0) return;
+
+        UpdateWeaponHud();
+    }
+
+    /// <summary>
+    /// Switch the weapon up
+    /// </summary>
+    private void SwitchWeaponUp()
+    {
+        if (_inventory.GetNbWeapons() <= 0)
+        {
+            return;
         }
 
-        if (_canRun && @event.IsActionPressed(_runInput))
+        if (_weapon == null)
         {
-            _movementSpeed = _runSpeed;
+            _weapon = _inventory.GetWeapon(0);
         }
-        else if (@event.IsActionReleased(_runInput))
+        else
         {
-            _movementSpeed = _walkSpeed;
+            var nextIndex = (byte) (_inventory.GetWeaponIndex(_weapon) + 1);
+
+            _weapon = _inventory.GetWeapon(_inventory.WeaponExists(nextIndex) ? nextIndex : (byte) 0);
         }
 
-        if (_canJump && @event.IsActionPressed(_jumpInput) && IsOnFloor())
+        _shotAudioStream.Stream = _weapon.GetShotSound();
+
+        UpdateWeaponHud();
+    }
+
+    /// <summary>
+    /// Switch the weapon down
+    /// </summary>
+    private void SwitchWeaponDown()
+    {
+        if (_inventory.GetNbWeapons() <= 0)
         {
-            _velocity.y += _jumpStrength;
+            return;
         }
 
-        if (_canCrouch && @event.IsActionPressed(_crouchInput))
+        if (_weapon == null)
         {
-            GD.Print("Crouch");
+            _weapon = _inventory.GetWeapon(0);
+        }
+        else
+        {
+            var nextIndex = _inventory.GetWeaponIndex(_weapon) - 1;
+
+            _weapon = nextIndex < 0
+                ? _inventory.GetWeapon((byte) (_inventory.GetNbWeapons() - 1))
+                : _inventory.GetWeapon((byte) nextIndex);
         }
 
-        if (_canShot && @event.IsActionPressed(_shotInput))
-        {
-            var collider = (Node) _shotRaycast.GetCollider();
+        _shotAudioStream.Stream = _weapon.GetShotSound();
 
-            if (collider != null && collider.IsInGroup("enemy"))
-            {
-                ((Enemy) collider).LooseLife(10.0f);
-            }
-        }
+        UpdateWeaponHud();
+    }
 
-        if (_canShot && @event.IsActionPressed(_reloadInput))
-        {
-            GD.Print("Reload");
-        }
+    /// <summary>
+    /// Unequip the current equiped weapon
+    /// </summary>
+    private void UnequipWeapon()
+    {
+        _weapon = null;
 
-        if (_canInterract && @event.IsActionPressed(_interractInput))
-        {
-            GD.Print("Interract");
-        }
-
-        if (_canFlashlight && @event.IsActionPressed(_flashlightInput))
-        {
-            GD.Print("Flashlight");
-        }
+        UpdateWeaponHud();
     }
 
     /// <summary>
@@ -357,18 +578,32 @@ public class Player : KinematicBody
     }
 
     /// <summary>
-    /// Loose the specified life
+    /// Update the HUD
     /// </summary>
-    /// <param name="value">The life to loose</param>
-    public void LooseLife(float value)
+    private void UpdateHud()
     {
-        _life -= value;
-
-        if (_life < 0.0f)
-        {
-            _life = 0.0f;
-        }
+        UpdateWeaponHud();
 
         _hud.SetLife(_life);
+    }
+
+    /// <summary>
+    /// Update the HUD according to the current equiped weapon/reserve
+    /// </summary>
+    private void UpdateWeaponHud()
+    {
+        if (_weapon != null)
+        {
+            _hud.SetWeaponInfoVisibility(true);
+            _hud.SetWeaponName(_weapon.GetName());
+            _hud.SetWeaponTexture(_weapon.GetTexture());
+            _hud.SetAmmoType(_weapon.GetAmmoType());
+            _hud.SetCharger(_weapon.GetCharger());
+            _hud.SetReserve(_inventory.GetReserve(_weapon.GetAmmoType()));
+        }
+        else
+        {
+            _hud.SetWeaponInfoVisibility(false);
+        }
     }
 }

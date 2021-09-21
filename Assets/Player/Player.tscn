@@ -3,7 +3,7 @@
 [ext_resource path="res://Assets/Player/Player.cs" type="Script" id=1]
 [ext_resource path="res://Assets/Player/HUD.cs" type="Script" id=2]
 [ext_resource path="res://Fonts/arial.ttf" type="DynamicFontData" id=3]
-[ext_resource path="res://Textures/HUD/weapon.png" type="Texture" id=4]
+[ext_resource path="res://Textures/HUD/weapon_glock_17.png" type="Texture" id=4]
 [ext_resource path="res://Textures/HUD/cursor.png" type="Texture" id=5]
 
 [sub_resource type="CapsuleShape" id=1]
@@ -11,15 +11,15 @@ radius = 0.6
 height = 0.7
 
 [sub_resource type="DynamicFont" id=2]
-size = 48
+size = 32
 font_data = ExtResource( 3 )
 
 [sub_resource type="DynamicFont" id=3]
-size = 48
+size = 32
 font_data = ExtResource( 3 )
 
 [sub_resource type="DynamicFont" id=4]
-size = 48
+size = 32
 font_data = ExtResource( 3 )
 
 [node name="Player" type="KinematicBody" groups=[
@@ -39,6 +39,9 @@ enabled = true
 [node name="CollisionShape" type="CollisionShape" parent="."]
 transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0.95, 0 )
 shape = SubResource( 1 )
+
+[node name="ShotAudioStream" type="AudioStreamPlayer3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, -0.8 )
 
 [node name="HUD" type="Control" parent="."]
 anchor_right = 1.0
@@ -80,21 +83,81 @@ __meta__ = {
 }
 
 [node name="LifeLabel" type="Label" parent="HUD/HBoxContainer"]
-margin_right = 78.0
-margin_bottom = 55.0
+margin_right = 52.0
+margin_bottom = 36.0
 custom_fonts/font = SubResource( 2 )
 text = "Life"
 
 [node name="LifeSeparator" type="Label" parent="HUD/HBoxContainer"]
-margin_left = 82.0
-margin_right = 95.0
-margin_bottom = 55.0
+margin_left = 56.0
+margin_right = 65.0
+margin_bottom = 36.0
 custom_fonts/font = SubResource( 3 )
 text = ":"
 
 [node name="LifeValue" type="Label" parent="HUD/HBoxContainer"]
-margin_left = 99.0
-margin_right = 220.0
-margin_bottom = 55.0
+margin_left = 69.0
+margin_right = 150.0
+margin_bottom = 36.0
 custom_fonts/font = SubResource( 4 )
 text = "100.0"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="HUD"]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -550.0
+margin_top = -75.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="WeaponName" type="Label" parent="HUD/HBoxContainer2"]
+margin_top = 19.0
+margin_right = 250.0
+margin_bottom = 55.0
+rect_min_size = Vector2( 250, 0 )
+custom_fonts/font = SubResource( 2 )
+text = "Glock-17"
+
+[node name="Charger" type="Label" parent="HUD/HBoxContainer2"]
+margin_left = 254.0
+margin_top = 19.0
+margin_right = 329.0
+margin_bottom = 55.0
+rect_min_size = Vector2( 75, 0 )
+custom_fonts/font = SubResource( 2 )
+text = "19"
+align = 2
+
+[node name="Separator2" type="Label" parent="HUD/HBoxContainer2"]
+margin_left = 333.0
+margin_top = 19.0
+margin_right = 359.0
+margin_bottom = 55.0
+custom_fonts/font = SubResource( 3 )
+text = " | "
+align = 2
+
+[node name="Reserve" type="Label" parent="HUD/HBoxContainer2"]
+margin_left = 363.0
+margin_top = 19.0
+margin_right = 438.0
+margin_bottom = 55.0
+rect_min_size = Vector2( 75, 0 )
+custom_fonts/font = SubResource( 4 )
+text = "38"
+
+[node name="AmmoType" type="Label" parent="HUD/HBoxContainer2"]
+margin_left = 442.0
+margin_top = 19.0
+margin_right = 542.0
+margin_bottom = 55.0
+rect_min_size = Vector2( 100, 0 )
+custom_fonts/font = SubResource( 2 )
+text = "9mm"
+align = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
