@@ -180,6 +180,15 @@ public class Enemy : KinematicBody
     }
 
     /// <summary>
+    /// Get the life
+    /// </summary>
+    /// <returns>The life</returns>
+    public float GetLife()
+    {
+        return _life;
+    }
+    
+    /// <summary>
     /// Loose the specified amount of life
     /// </summary>
     /// <param name="value">The life to loose</param>

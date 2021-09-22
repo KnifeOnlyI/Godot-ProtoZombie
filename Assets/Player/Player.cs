@@ -1,11 +1,12 @@
 using Godot;
+using ProtoZombie.Scripts;
 using ProtoZombie.Scripts.Inventory;
 using ProtoZombie.Scripts.Weapon;
 using ProtoZombie.Scripts.Weapon.Ammo;
 using ProtoZombie.Scripts.Weapon.Weapon;
 
 /// <summary>
-/// Represent the player
+/// Represent the player 
 /// </summary>
 public class Player : KinematicBody
 {
@@ -170,6 +171,11 @@ public class Player : KinematicBody
     [Export] private float _maxLife = 100.0f;
 
     /// <summary>
+    /// The points
+    /// </summary>
+    [Export] private uint _points = 500;
+
+    /// <summary>
     /// The head node
     /// </summary>
     private Spatial _head;
@@ -232,7 +238,7 @@ public class Player : KinematicBody
     /// - The max life is lower or equals than 0.0f
     /// - The crouch speed is lower or equals than 0.0f
     /// - The walk speed is lower or equals than 0.0f
-    /// - The run speed is lower or equals than 0.0f
+    /// - The run speed is lower or equals than 0.0f*
     /// </exception>
     public override void _Ready()
     {
@@ -274,10 +280,9 @@ public class Player : KinematicBody
         _shotRaycast.CastTo = new Vector3(0.0f, -1e6f, 0.0f);
         _canFetchAmmo = _canFetchAmmo && _canShot;
 
+        _inventory.GetReserve(AmmoType.Mm9).SetQuantity(30);
         _inventory.AddWeapon(new Glock17());
         _inventory.AddWeapon(new Mp5());
-
-        _inventory.GetReserve(AmmoType.Mm9).SetQuantity(30);
 
         UpdateHud();
     }
@@ -434,6 +439,17 @@ public class Player : KinematicBody
     }
 
     /// <summary>
+    /// Set the points
+    /// </summary>
+    /// <param name="value">The new points value</param>
+    private void SetPoints(uint value)
+    {
+        _points = value;
+
+        _hud.SetPoints(_points);
+    }
+
+    /// <summary>
     /// Process the weapons actions according to the specified delta
     /// </summary>
     /// <param name="delta">The delta in seconds</param>
@@ -522,10 +538,28 @@ public class Player : KinematicBody
 
         var collider = (Node) _shotRaycast.GetCollider();
 
-        if (collider != null && collider.IsInGroup("enemy"))
+        if (collider is Enemy enemy)
         {
-            ((Enemy) collider).LooseLife(_weapon.GetDamage());
+            ShotOnEnemy(enemy);
         }
+    }
+
+    /// <summary>
+    /// Perform a shot on the specified enemy
+    /// </summary>
+    /// <param name="enemy"></param>
+    private void ShotOnEnemy(Enemy enemy)
+    {
+        var pointsToWin = Constants.PointsPerShot;
+
+        enemy.LooseLife(_weapon.GetDamage());
+
+        if (enemy.GetLife() <= 0.0f)
+        {
+            pointsToWin += Constants.PointsPerKill;
+        }
+
+        SetPoints(_points + pointsToWin);
     }
 
     /// <summary>
@@ -637,6 +671,7 @@ public class Player : KinematicBody
         UpdateWeaponHud();
 
         _hud.SetLife(_life);
+        _hud.SetMaxLife(_maxLife);
     }
 
     /// <summary>

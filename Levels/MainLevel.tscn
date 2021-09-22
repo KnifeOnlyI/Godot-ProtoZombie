@@ -45,7 +45,7 @@ navmesh = SubResource( 1 )
 transform = Transform( 5, 0, 0, 0, 0.05, 0, 0, 0, 5, 0, -0.05, 0 )
 
 [node name="EnemySpawnTimer" type="Timer" parent="."]
-wait_time = 7.0
+wait_time = 2.0
 autostart = true
 
 [connection signal="timeout" from="EnemySpawnTimer" to="." method="_OnEnemySpawnTimerTimeout"]

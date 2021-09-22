@@ -17,6 +17,16 @@ public class HUD : Control
     /// The life label
     /// </summary>
     private Label _labelLife;
+    
+    /// <summary>
+    /// The max life label
+    /// </summary>
+    private Label _labelMaxLife;
+    
+    /// <summary>
+    /// The points label
+    /// </summary>
+    private Label _labelPoints;
 
     /// <summary>
     /// The weapon name label
@@ -49,7 +59,9 @@ public class HUD : Control
     public override void _Ready()
     {
         _weaponContainer = (HBoxContainer) GetNode("HBoxContainer2");
-        _labelLife = (Label) GetNode("HBoxContainer/LifeValue");
+        _labelLife = (Label) GetNode("VBoxContainer/LifeContainer/Value");
+        _labelMaxLife = (Label) GetNode("VBoxContainer/LifeContainer/MaxValue");
+        _labelPoints = (Label) GetNode("VBoxContainer/PointsContainer/Value");
         _labelWeaponName = (Label) GetNode("HBoxContainer2/WeaponName");
         _labelCharger = (Label) GetNode("HBoxContainer2/Charger");
         _labelReserve = (Label) GetNode("HBoxContainer2/Reserve");
@@ -63,7 +75,25 @@ public class HUD : Control
     /// <param name="value">The new life value</param>
     public void SetLife(float value)
     {
-        _labelLife.Text = value.ToString(CultureInfo.InvariantCulture);
+        _labelLife.Text = value.ToString("0.00").Replace(",", ".");
+    }
+    
+    /// <summary>
+    /// Set the max life value
+    /// </summary>
+    /// <param name="value">The new max life value</param>
+    public void SetMaxLife(float value)
+    {
+        _labelMaxLife.Text = value.ToString("0.00").Replace(",", ".");
+    }
+    
+    /// <summary>
+    /// Set the points value
+    /// </summary>
+    /// <param name="value">The new points value</param>
+    public void SetPoints(uint value)
+    {
+        _labelPoints.Text = value.ToString();
     }
 
     /// <summary>
