@@ -54,5 +54,18 @@
         /// </summary>
         /// <returns>TRUE if the charger is empty, FALSE otherwise</returns>
         bool isEmpty();
+
+        /// <summary>
+        /// Add the specified quantity
+        /// </summary>
+        /// <param name="value">The number of ammo to add</param>
+        /// <returns>The ammo quantity that could actually be gained according the capacity value</returns>
+        ushort Add(ushort value);
+        
+        /// <summary>
+        /// Remove the specified quantity
+        /// </summary>
+        /// <param name="value">The number of ammo to add</param>
+        void Remove(ushort value);
     }
 }

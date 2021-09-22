@@ -168,7 +168,7 @@ public class Enemy : KinematicBody
     /// <param name="player"></param>
     private void OnCollideWithPlayer(Player player)
     {
-        player.LooseLife(_damageQuantity);
+        player.RemoveLife(_damageQuantity);
     }
 
     /// <summary>

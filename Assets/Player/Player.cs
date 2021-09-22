@@ -366,12 +366,64 @@ public class Player : KinematicBody
     }
 
     /// <summary>
-    /// Loose the specified life
+    /// Remove the specified life
     /// </summary>
-    /// <param name="value">The life to loose</param>
-    public void LooseLife(float value)
+    /// <param name="value">The life to remove</param>
+    public void RemoveLife(float value)
     {
-        _life -= value;
+        SetLife(GetLife() - value);
+    }
+
+    /// <summary>
+    /// Add the specified life
+    /// </summary>
+    /// <param name="value">The life to gain</param>
+    /// <returns>The life quantity that could actually be added according the max life value</returns>
+    public float AddLife(float value)
+    {
+        var toUse = value;
+
+        if (_life + toUse > _maxLife)
+        {
+            toUse = _maxLife - _life;
+        }
+
+        SetLife(GetLife() + toUse);
+
+        return toUse;
+    }
+
+    /// <summary>
+    /// Add the specified amount of ammo to the specified reserve
+    /// </summary>
+    /// <param name="ammoType">The ammo type</param>
+    /// <param name="value">The value to add</param>
+    /// <returns>The ammo quantity that could actually be added according the reserve capacity</returns>
+    public ushort AddAmmo(AmmoType ammoType, ushort value)
+    {
+        var added = _inventory.GetReserve(ammoType)?.Add(value) ?? 0;
+
+        UpdateWeaponHud();
+
+        return added;
+    }
+
+    /// <summary>
+    /// Get the life
+    /// </summary>
+    /// <returns>The life</returns>
+    private float GetLife()
+    {
+        return _life;
+    }
+
+    /// <summary>
+    /// Set the life
+    /// </summary>
+    /// <param name="value">The new life value</param>
+    private void SetLife(float value)
+    {
+        _life = value;
 
         if (_life < 0.0f)
         {
@@ -390,7 +442,7 @@ public class Player : KinematicBody
         _weapon?.Update(delta);
 
         // TODO Set a shot end sound to avoid jerks when shot multiple times
-        
+
         if (Input.IsActionPressed(_shotInput))
         {
             Shot();

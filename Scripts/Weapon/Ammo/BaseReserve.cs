@@ -1,4 +1,6 @@
-﻿namespace ProtoZombie.Scripts.Weapon.Ammo
+﻿using Godot;
+
+namespace ProtoZombie.Scripts.Weapon.Ammo
 {
     /// <summary>
     /// The base reserve
@@ -98,6 +100,25 @@
         public bool isEmpty()
         {
             return _quantity == 0;
+        }
+
+        public ushort Add(ushort value)
+        {
+            var toAdd = value;
+
+            if (_quantity + toAdd > _capacity)
+            {
+                toAdd = (ushort) (_capacity - _quantity);
+            }
+
+            SetQuantity((ushort) (GetQuantity() + toAdd));
+            
+            return toAdd;
+        }
+
+        public void Remove(ushort value)
+        {
+            SetQuantity((ushort) (GetQuantity() - value));
         }
     }
 }
