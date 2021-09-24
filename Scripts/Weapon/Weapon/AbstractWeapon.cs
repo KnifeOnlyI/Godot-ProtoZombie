@@ -382,5 +382,7 @@ namespace ProtoZombie.Scripts.Weapon.Weapon
         {
             _deltaShot += delta;
         }
+
+        public abstract object Clone();
     }
 }

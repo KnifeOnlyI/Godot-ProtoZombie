@@ -191,6 +191,11 @@ public class Player : KinematicBody
     private HUD _hud;
 
     /// <summary>
+    /// The interract raycast node
+    /// </summary>
+    private RayCast _interractRaycast;
+
+    /// <summary>
     /// The shot raycast node
     /// </summary>
     private RayCast _shotRaycast;
@@ -272,17 +277,19 @@ public class Player : KinematicBody
         _head = (Spatial) GetNode("Head");
         _camera = (Camera) _head.GetNode("Camera");
         _hud = (HUD) GetNode("HUD");
+        _interractRaycast = (RayCast) _head.GetNode("InterractRaycast");
         _shotRaycast = (RayCast) _head.GetNode("ShotRaycast");
         _shotAudioStream = (AudioStreamPlayer3D) GetNode("ShotAudioStream");
+
         _movementSpeed = _walkSpeed;
         _life = _maxLife;
         _camera.Fov = _fov;
+        _interractRaycast.CastTo = new Vector3(0.0f, -1.5f, 0.0f);
         _shotRaycast.CastTo = new Vector3(0.0f, -1e6f, 0.0f);
         _canFetchAmmo = _canFetchAmmo && _canShot;
 
         _inventory.GetReserve(AmmoType.Mm9).SetQuantity(30);
         _inventory.AddWeapon(new Glock17());
-        _inventory.AddWeapon(new Mp5());
 
         UpdateHud();
     }
@@ -299,6 +306,7 @@ public class Player : KinematicBody
         }
 
         ProcessMovement(delta);
+        ProcessCheckInterractable();
     }
 
     /// <summary>
@@ -361,7 +369,7 @@ public class Player : KinematicBody
 
         if (_canInterract && @event.IsActionPressed(_interractInput))
         {
-            GD.Print("Interract");
+            Interract();
         }
 
         if (_canFlashlight && @event.IsActionPressed(_flashlightInput))
@@ -521,6 +529,53 @@ public class Player : KinematicBody
         _velocity.z = velocityHorizontal.z;
 
         _velocity = MoveAndSlide(_velocity, Vector3.Up);
+    }
+
+    /// <summary>
+    /// Process for the interractable in front of player and update the HUD to gim him informations about interraction
+    /// </summary>
+    private void ProcessCheckInterractable()
+    {
+        var collider = (Node) _interractRaycast.GetCollider();
+
+        if (collider is BuyableWeapon buyableWeapon && !AlreadyHaveWeapon(buyableWeapon.GetWeapon()))
+        {
+            _hud.SetBuyableWeaponName(buyableWeapon.GetWeapon().GetName());
+            _hud.SetBuyableWeaponPrice(buyableWeapon.GetPrice());
+            _hud.SetBuyableWeaponVisibility(true);
+        }
+        else
+        {
+            _hud.SetBuyableWeaponVisibility(false);
+        }
+    }
+
+    /// <summary>
+    /// Try to interract
+    /// </summary>
+    private void Interract()
+    {
+        var collider = (Node) _interractRaycast.GetCollider();
+
+        if (!(collider is BuyableWeapon buyableWeapon) ||
+            _points < buyableWeapon.GetPrice() ||
+            AlreadyHaveWeapon(buyableWeapon.GetWeapon()))
+        {
+            return;
+        }
+
+        _inventory.AddWeapon(buyableWeapon.GetWeapon());
+        SetPoints(_points - buyableWeapon.GetPrice());
+    }
+
+    /// <summary>
+    /// Check if the specified weapon is already in the inventory (Comparison only by name)
+    /// </summary>
+    /// <param name="weapon">The weapon to check</param>
+    /// <returns>TRUE if the weapon is already in the inventory, FALSE otherwise</returns>
+    private bool AlreadyHaveWeapon(IWeapon weapon)
+    {
+        return _inventory.GetWeaponByName(weapon.GetName()) != null;
     }
 
     /// <summary>

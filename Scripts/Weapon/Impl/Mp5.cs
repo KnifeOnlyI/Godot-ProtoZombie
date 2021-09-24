@@ -25,5 +25,10 @@ namespace ProtoZombie.Scripts.Weapon
             base("MP5", 25.0f, 2.0f, 1.0f, 0.6f, 0.8f, 800, 30, AmmoType.Mm9, ShotType.FullAuto, Ttexture, ShotSound)
         {
         }
+
+        public override object Clone()
+        {
+            return new Mp5();
+        }
     }
 }

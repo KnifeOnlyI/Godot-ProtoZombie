@@ -8,6 +8,16 @@
 
 config_version=4
 
+_global_script_classes=[ {
+"base": "Reference",
+"class": "ArrayUtils",
+"language": "GDScript",
+"path": "res://Addons/SIsilicon.3d.text/array_utils.gd"
+} ]
+_global_script_class_icons={
+"ArrayUtils": ""
+}
+
 [application]
 
 config/name="Proto Zombie"
@@ -19,6 +29,10 @@ config/icon="res://icon.png"
 window/size/width=1920
 window/size/height=1080
 window/size/borderless=true
+
+[editor_plugins]
+
+enabled=PoolStringArray( "res://addons/SIsilicon.3d.text/plugin.cfg" )
 
 [input]
 

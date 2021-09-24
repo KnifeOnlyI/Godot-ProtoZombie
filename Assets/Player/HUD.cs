@@ -1,6 +1,5 @@
 using System;
 using Godot;
-using System.Globalization;
 using ProtoZombie.Scripts.Weapon.Ammo;
 
 /// <summary>
@@ -14,15 +13,20 @@ public class HUD : Control
     private HBoxContainer _weaponContainer;
 
     /// <summary>
+    /// The HBoxContainer contains the current buyable weapon info
+    /// </summary>
+    private HBoxContainer _buyableWeaponContainer;
+
+    /// <summary>
     /// The life label
     /// </summary>
     private Label _labelLife;
-    
+
     /// <summary>
     /// The max life label
     /// </summary>
     private Label _labelMaxLife;
-    
+
     /// <summary>
     /// The points label
     /// </summary>
@@ -49,6 +53,16 @@ public class HUD : Control
     private Label _labelAmmoType;
 
     /// <summary>
+    /// The buyable weapon name label
+    /// </summary>
+    private Label _buyableWeaponName;
+
+    /// <summary>
+    /// The buyable weapon price label
+    /// </summary>
+    private Label _buyableWeaponPrice;
+
+    /// <summary>
     /// The weapon texture rect
     /// </summary>
     private TextureRect _textureRectWeapon;
@@ -59,6 +73,7 @@ public class HUD : Control
     public override void _Ready()
     {
         _weaponContainer = (HBoxContainer) GetNode("HBoxContainer2");
+        _buyableWeaponContainer = (HBoxContainer) GetNode("HBoxContainer3");
         _labelLife = (Label) GetNode("VBoxContainer/LifeContainer/Value");
         _labelMaxLife = (Label) GetNode("VBoxContainer/LifeContainer/MaxValue");
         _labelPoints = (Label) GetNode("VBoxContainer/PointsContainer/Value");
@@ -66,6 +81,8 @@ public class HUD : Control
         _labelCharger = (Label) GetNode("HBoxContainer2/Charger");
         _labelReserve = (Label) GetNode("HBoxContainer2/Reserve");
         _labelAmmoType = (Label) GetNode("HBoxContainer2/AmmoType");
+        _buyableWeaponName = (Label) GetNode("HBoxContainer3/WeaponName");
+        _buyableWeaponPrice = (Label) GetNode("HBoxContainer3/Price");
         _textureRectWeapon = (TextureRect) GetNode("Weapon");
     }
 
@@ -77,7 +94,7 @@ public class HUD : Control
     {
         _labelLife.Text = value.ToString("0.00").Replace(",", ".");
     }
-    
+
     /// <summary>
     /// Set the max life value
     /// </summary>
@@ -86,7 +103,7 @@ public class HUD : Control
     {
         _labelMaxLife.Text = value.ToString("0.00").Replace(",", ".");
     }
-    
+
     /// <summary>
     /// Set the points value
     /// </summary>
@@ -113,8 +130,33 @@ public class HUD : Control
     public void SetWeaponName(string value)
     {
         _labelWeaponName.Text = value;
+    }
 
-        
+    /// <summary>
+    /// Set the buyable weapon visiblity
+    /// </summary>
+    /// <param name="value">The new buyable weapon visibility</param>
+    public void SetBuyableWeaponVisibility(bool value)
+    {
+        _buyableWeaponContainer.Visible = value;
+    }
+
+    /// <summary>
+    /// Set the buyable weapon name
+    /// </summary>
+    /// <param name="value">The new buyable weapon name</param>
+    public void SetBuyableWeaponName(string value)
+    {
+        _buyableWeaponName.Text = value;
+    }
+
+    /// <summary>
+    /// Set the buyable weapon price
+    /// </summary>
+    /// <param name="value">The new buyable weapon price</param>
+    public void SetBuyableWeaponPrice(uint value)
+    {
+        _buyableWeaponPrice.Text = value.ToString();
     }
 
     /// <summary>

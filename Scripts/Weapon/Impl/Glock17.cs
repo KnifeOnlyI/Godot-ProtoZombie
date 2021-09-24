@@ -28,5 +28,10 @@ namespace ProtoZombie.Scripts.Weapon
             )
         {
         }
+        
+        public override object Clone()
+        {
+            return new Glock17();
+        }
     }
 }

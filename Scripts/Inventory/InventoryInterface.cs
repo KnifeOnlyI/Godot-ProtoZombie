@@ -30,6 +30,13 @@ namespace ProtoZombie.Scripts.Inventory
         IWeapon GetWeapon(byte index);
         
         /// <summary>
+        /// Get the weapon with the specified name
+        /// </summary>
+        /// <param name="name">The name of weapon to get</param>
+        /// <returns>The founded weapon</returns>
+        IWeapon GetWeaponByName(string name);
+        
+        /// <summary>
         /// Add the specified weapon to the inventory
         /// </summary>
         /// <param name="weapon">The weapon to add</param>

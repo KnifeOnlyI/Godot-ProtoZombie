@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 using ProtoZombie.Scripts.Weapon.Ammo;
 using ProtoZombie.Scripts.Weapon.Weapon;
 
@@ -58,6 +59,20 @@ namespace ProtoZombie.Scripts.Inventory
             }
 
             return _weapons[index];
+        }
+
+        public IWeapon GetWeaponByName(string name)
+        {
+            IWeapon results = null;
+
+            var index = _weapons.FindIndex(q => q.GetName() == name);
+
+            if (index != -1)
+            {
+                results = GetWeapon((byte) index);
+            }
+
+            return results;
         }
 
         public Dictionary<AmmoType, IReserve> GetAllReserves()
