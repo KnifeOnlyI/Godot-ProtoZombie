@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Godot;
 
 /// <summary>
@@ -51,6 +52,16 @@ public class Enemy : KinematicBody
     private Timer _calculationPathTimer;
 
     /// <summary>
+    /// The idle enemy position node
+    /// </summary>
+    private Position3D _idleEnemyPosition;
+
+    /// <summary>
+    /// The enemy spawner node list
+    /// </summary>
+    private List<Position3D> _enemySpawnerList;
+
+    /// <summary>
     /// The path positions to the player position
     /// </summary>
     private Vector3[] _path;
@@ -71,16 +82,29 @@ public class Enemy : KinematicBody
     private float _life;
 
     /// <summary>
+    /// Check if the enemy is activated or not
+    /// </summary>
+    private bool _isActivated;
+
+    /// <summary>
     /// Executed on package scene
     /// </summary>
     /// <param name="player">The player</param>
     /// <param name="nav">The navigation</param>
-    public void _Init(Player player, Navigation nav)
+    /// <param name="enemySpawnerList">The enemy spawner list</param>
+    public void _Init(Player player, Navigation nav, List<Position3D> enemySpawnerList)
     {
         _player = player;
         _nav = nav;
+        _idleEnemyPosition = nav.GetNode<Position3D>("IdleEnemyPosition");
+        _enemySpawnerList = enemySpawnerList;
+
+        if (_enemySpawnerList.Count == 0)
+        {
+            throw new System.Exception("Not available enemy spawner");
+        }
     }
-    
+
     /// <summary>
     /// Executed when the node is ready
     /// </summary>
@@ -97,12 +121,10 @@ public class Enemy : KinematicBody
 
         _calculationPathTimer.WaitTime = _frequencyPathCalculation;
         _life = _maxLife;
-        
-        MoveTo(_player.GlobalTransform.origin);
 
         _body.Material = new SpatialMaterial();
-        
-        UpdateColor();
+
+        Deactivate();
     }
 
     /// <summary>
@@ -113,7 +135,10 @@ public class Enemy : KinematicBody
     {
         _delta += delta;
 
-        if (_pathNode >= _path.Length) return;
+        if (!_isActivated || _path == null || _pathNode >= _path.Length)
+        {
+            return;
+        }
 
         var direction = (_path[_pathNode] - GlobalTransform.origin);
 
@@ -180,6 +205,47 @@ public class Enemy : KinematicBody
     }
 
     /// <summary>
+    /// Check if activated or not
+    /// </summary>
+    /// <returns>TRUE if activated, FALSE otherwise</returns>
+    public bool IsActivated()
+    {
+        return _isActivated;
+    }
+
+    /// <summary>
+    /// Deactivate the enemy
+    /// </summary>
+    private void Deactivate()
+    {
+        _isActivated = false;
+        GlobalTransform = _idleEnemyPosition.GlobalTransform;
+    }
+
+    /// <summary>
+    /// Get a random spawn position
+    /// </summary>
+    /// <returns>The random spawn position</returns>
+    private Position3D GetRandomSpawnPosition()
+    {
+        var number = (int) (GD.Randi() % _enemySpawnerList.Count);
+        
+        return _enemySpawnerList[number];
+    }
+
+    /// <summary>
+    /// Activate the enemy
+    /// </summary>
+    public void Activate()
+    {
+        _isActivated = true;
+        _life = _maxLife;
+        GlobalTransform = GetRandomSpawnPosition().GlobalTransform;
+
+        UpdateColor();
+    }
+
+    /// <summary>
     /// Get the life
     /// </summary>
     /// <returns>The life</returns>
@@ -187,7 +253,7 @@ public class Enemy : KinematicBody
     {
         return _life;
     }
-    
+
     /// <summary>
     /// Loose the specified amount of life
     /// </summary>
@@ -198,7 +264,7 @@ public class Enemy : KinematicBody
 
         if (_life <= 0.0f)
         {
-            QueueFree();
+            Deactivate();
         }
         else
         {
@@ -209,8 +275,11 @@ public class Enemy : KinematicBody
     /// <summary>
     /// Executed when the path calculation timer timeout
     /// </summary>
-    public void _on_Timer_timeout()
+    public void _OnTimerTimeout()
     {
-        MoveTo(_player.GlobalTransform.origin);
+        if (_isActivated)
+        {
+            MoveTo(_player.GlobalTransform.origin);
+        }
     }
 }

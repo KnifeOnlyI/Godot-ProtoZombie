@@ -51,6 +51,19 @@ navmesh = SubResource( 1 )
 [node name="Floor" parent="Navigation/NavigationMeshInstance" instance=ExtResource( 2 )]
 transform = Transform( 5, 0, 0, 0, 0.05, 0, 0, 0, 5, 0, -0.05, 0 )
 
+[node name="IdleEnemyPosition" type="Position3D" parent="Navigation"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 0 )
+
+[node name="EnemySpawner1" type="Position3D" parent="Navigation" groups=[
+"enemy_spawner",
+]]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3 )
+
+[node name="EnemySpawner2" type="Position3D" parent="Navigation" groups=[
+"enemy_spawner",
+]]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3 )
+
 [node name="EnemySpawnTimer" type="Timer" parent="."]
 wait_time = 2.0
 autostart = true
