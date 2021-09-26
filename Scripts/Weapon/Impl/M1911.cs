@@ -5,24 +5,24 @@ using ProtoZombie.Scripts.Weapon.Weapon;
 namespace ProtoZombie.Scripts.Weapon
 {
     /// <summary>
-    /// Represent an MP5 weapon
+    /// Represent an M1911 weapon
     /// </summary>
-    public class Mp5 : AbstractWeapon
+    public class M1911 : AbstractWeapon
     {
         /// <summary>
         /// The texture
         /// </summary>
         private static readonly Texture Ttexture =
-            (Texture) GD.Load("res://Textures/HUD/weapon_mp5.png");
+            (Texture) GD.Load("res://Textures/HUD/weapon_m1911.png");
 
         /// <summary>
         /// The shot sound
         /// </summary>
         private static readonly AudioStreamSample ShotSound =
-            (AudioStreamSample) GD.Load("res://Sounds/Weapons/mp5_shot.wav");
+            (AudioStreamSample) GD.Load("res://Sounds/Weapons/m1911_shot.wav");
 
-        public Mp5() :
-            base("MP5", 25.0f, 2.0f, 1.0f, 0.6f, 0.8f, 800, 30, AmmoType.Mm9, ShotType.FullAuto, Ttexture, ShotSound)
+        public M1911() :
+            base("M1911", 10.0f, 2.0f, 1.0f, 0.6f, 0.8f, 342, 7, AmmoType.Acp45, ShotType.SemiAuto, Ttexture, ShotSound)
         {
         }
     }

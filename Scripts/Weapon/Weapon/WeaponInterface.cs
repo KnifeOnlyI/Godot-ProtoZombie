@@ -1,5 +1,4 @@
-﻿using System;
-using Godot;
+﻿using Godot;
 using ProtoZombie.Scripts.Weapon.Ammo;
 
 namespace ProtoZombie.Scripts.Weapon.Weapon
@@ -7,7 +6,7 @@ namespace ProtoZombie.Scripts.Weapon.Weapon
     /// <summary>
     /// Represent the base interface for all weapons
     /// </summary>
-    public interface IWeapon : ICloneable
+    public interface IWeapon
     {
         /// <summary>
         /// Get the name

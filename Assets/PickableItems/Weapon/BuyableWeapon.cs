@@ -40,6 +40,9 @@ public class BuyableWeapon : Area
             case Weapons.Mp5:
                 _buyableWeapon = new Mp5();
                 break;
+            case Weapons.M1911:
+                _buyableWeapon = new M1911();
+                break;
             default:
                 throw new System.ArgumentOutOfRangeException();
         }

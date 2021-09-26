@@ -19,7 +19,7 @@ namespace ProtoZombie.Scripts.Weapon
         /// The shot sound
         /// </summary>
         private static readonly AudioStreamSample ShotSound =
-            (AudioStreamSample) GD.Load("res://Sounds/Weapons/glock_17_shot.wav");
+            (AudioStreamSample) GD.Load("res://Sounds/Weapons/glock17_shot.wav");
 
         public Glock17() :
             base(
@@ -27,11 +27,6 @@ namespace ProtoZombie.Scripts.Weapon
                 ShotSound
             )
         {
-        }
-        
-        public override object Clone()
-        {
-            return new Glock17();
         }
     }
 }

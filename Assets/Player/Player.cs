@@ -289,7 +289,8 @@ public class Player : KinematicBody
         _canFetchAmmo = _canFetchAmmo && _canShot;
 
         _inventory.GetReserve(AmmoType.Mm9).SetQuantity(30);
-        _inventory.AddWeapon(new Glock17());
+        _inventory.GetReserve(AmmoType.Acp45).SetQuantity(30);
+        _inventory.AddWeapon(new M1911());
 
         UpdateHud();
     }
@@ -566,6 +567,10 @@ public class Player : KinematicBody
 
         _inventory.AddWeapon(buyableWeapon.GetWeapon());
         SetPoints(_points - buyableWeapon.GetPrice());
+
+        _weapon = buyableWeapon.GetWeapon();
+        
+        UpdateHud();
     }
 
     /// <summary>

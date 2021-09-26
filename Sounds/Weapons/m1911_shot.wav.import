@@ -1,0 +1,21 @@
+[remap]
+
+importer="wav"
+type="AudioStreamSample"
+path="res://.import/m1911_shot.wav-5323648bd37c3a9f8ca60b1c0ad696e0.sample"
+
+[deps]
+
+source_file="res://Sounds/Weapons/m1911_shot.wav"
+dest_files=[ "res://.import/m1911_shot.wav-5323648bd37c3a9f8ca60b1c0ad696e0.sample" ]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop=false
+compress/mode=0
