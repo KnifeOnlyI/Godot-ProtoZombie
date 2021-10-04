@@ -1,4 +1,5 @@
-﻿using Godot;
+﻿using System;
+using Godot;
 using ProtoZombie.Scripts.Weapon.Ammo;
 
 namespace ProtoZombie.Scripts.Weapon.Weapon
@@ -6,7 +7,7 @@ namespace ProtoZombie.Scripts.Weapon.Weapon
     /// <summary>
     /// Represent the base interface for all weapons
     /// </summary>
-    public interface IWeapon
+    public interface IWeapon : ICloneable
     {
         /// <summary>
         /// Get the name
@@ -79,12 +80,6 @@ namespace ProtoZombie.Scripts.Weapon.Weapon
         /// </summary>
         /// <returns>The charger</returns>
         IReserve GetCharger();
-
-        /// <summary>
-        /// Get the texture
-        /// </summary>
-        /// <returns>The texture</returns>
-        Texture GetTexture();
 
         /// <summary>
         /// Get the shot sound
@@ -160,12 +155,6 @@ namespace ProtoZombie.Scripts.Weapon.Weapon
         /// </summary>
         /// <param name="value">The new shot typoe</param>
         void SetShotType(ShotType value);
-
-        /// <summary>
-        /// Set the texture
-        /// </summary>
-        /// <param name="value">The new texture</param>
-        void SetTexture(Texture value);
 
         /// <summary>
         /// Set the shot sound

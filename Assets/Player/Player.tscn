@@ -1,10 +1,11 @@
-[gd_scene load_steps=10 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://Assets/Player/Player.cs" type="Script" id=1]
 [ext_resource path="res://Assets/Player/HUD.cs" type="Script" id=2]
 [ext_resource path="res://Fonts/arial.ttf" type="DynamicFontData" id=3]
-[ext_resource path="res://Textures/HUD/weapon_glock_17.png" type="Texture" id=4]
+[ext_resource path="res://Assets/Weapons/USP45/USP45.tscn" type="PackedScene" id=4]
 [ext_resource path="res://Textures/HUD/cursor.png" type="Texture" id=5]
+[ext_resource path="res://Assets/Weapons/MP7/MP7.tscn" type="PackedScene" id=6]
 
 [sub_resource type="CapsuleShape" id=1]
 radius = 0.6
@@ -40,6 +41,17 @@ transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0
 enabled = true
 
 [node name="Camera" type="Camera" parent="Head"]
+keep_aspect = 0
+
+[node name="Weapons" type="Spatial" parent="Head"]
+transform = Transform( -1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0 )
+visible = false
+
+[node name="MP7" parent="Head/Weapons" instance=ExtResource( 6 )]
+visible = false
+
+[node name="USP45" parent="Head/Weapons" instance=ExtResource( 4 )]
+visible = false
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
 transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0.95, 0 )
@@ -66,14 +78,6 @@ margin_top = -16.0
 margin_right = 16.0
 margin_bottom = 16.0
 texture = ExtResource( 5 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Weapon" type="TextureRect" parent="HUD"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-texture = ExtResource( 4 )
 __meta__ = {
 "_edit_use_anchors_": false
 }

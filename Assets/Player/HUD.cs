@@ -63,11 +63,6 @@ public class HUD : Control
     private Label _buyableWeaponPrice;
 
     /// <summary>
-    /// The weapon texture rect
-    /// </summary>
-    private TextureRect _textureRectWeapon;
-
-    /// <summary>
     /// Executed when the node is ready
     /// </summary>
     public override void _Ready()
@@ -83,7 +78,6 @@ public class HUD : Control
         _labelAmmoType = (Label) GetNode("HBoxContainer2/AmmoType");
         _buyableWeaponName = (Label) GetNode("HBoxContainer3/WeaponName");
         _buyableWeaponPrice = (Label) GetNode("HBoxContainer3/Price");
-        _textureRectWeapon = (TextureRect) GetNode("Weapon");
     }
 
     /// <summary>
@@ -120,7 +114,6 @@ public class HUD : Control
     public void SetWeaponInfoVisibility(bool value)
     {
         _weaponContainer.Visible = value;
-        _textureRectWeapon.Visible = value;
     }
 
     /// <summary>
@@ -157,15 +150,6 @@ public class HUD : Control
     public void SetBuyableWeaponPrice(uint value)
     {
         _buyableWeaponPrice.Text = value.ToString();
-    }
-
-    /// <summary>
-    /// Set the weapon texture
-    /// </summary>
-    /// <param name="value">The new weapon texture</param>
-    public void SetWeaponTexture(Texture value)
-    {
-        _textureRectWeapon.Texture = value;
     }
 
     /// <summary>

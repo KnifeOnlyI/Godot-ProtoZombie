@@ -5,8 +5,7 @@
     /// </summary>
     public enum Weapons
     {
-        Glock17,
-        Mp5,
-        M1911
+        Usp45,
+        Mp7
     }
 }

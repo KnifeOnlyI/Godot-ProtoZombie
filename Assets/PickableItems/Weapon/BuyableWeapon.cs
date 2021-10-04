@@ -1,5 +1,6 @@
 using Godot;
 using ProtoZombie.Scripts.Weapon;
+using ProtoZombie.Scripts.Weapon.Impl;
 using ProtoZombie.Scripts.Weapon.Weapon;
 
 public class BuyableWeapon : Area
@@ -18,7 +19,7 @@ public class BuyableWeapon : Area
     /// The 3D label node
     /// </summary>
     private Spatial _label;
-    
+
     /// <summary>
     /// The buyable weapon
     /// </summary>
@@ -31,17 +32,14 @@ public class BuyableWeapon : Area
     public override void _Ready()
     {
         _label = GetNode<Spatial>("./Label3D");
-        
+
         switch (_weapon)
         {
-            case Weapons.Glock17:
-                _buyableWeapon = new Glock17();
+            case Weapons.Usp45:
+                _buyableWeapon = new USP45();
                 break;
-            case Weapons.Mp5:
-                _buyableWeapon = new Mp5();
-                break;
-            case Weapons.M1911:
-                _buyableWeapon = new M1911();
+            case Weapons.Mp7:
+                _buyableWeapon = new MP7();
                 break;
             default:
                 throw new System.ArgumentOutOfRangeException();
@@ -51,14 +49,23 @@ public class BuyableWeapon : Area
     }
 
     /// <summary>
-    /// Get the buyable weapons
+    /// Get the buyable weapon informations
     /// </summary>
-    /// <returns>The buyable weapon</returns>
+    /// <returns>The buyable weapon informations</returns>
     public IWeapon GetWeapon()
     {
         return _buyableWeapon;
     }
-    
+
+    /// <summary>
+    /// Get an cloned instance of the buyable weapon
+    /// </summary>
+    /// <returns>A cloned instance of the buyable weapon</returns>
+    public IWeapon BuyWeapon()
+    {
+        return (IWeapon) _buyableWeapon.Clone();
+    }
+
     /// <summary>
     /// Get the price
     /// </summary>

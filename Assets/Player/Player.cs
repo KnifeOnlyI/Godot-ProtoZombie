@@ -1,8 +1,8 @@
 using Godot;
 using ProtoZombie.Scripts;
 using ProtoZombie.Scripts.Inventory;
-using ProtoZombie.Scripts.Weapon;
 using ProtoZombie.Scripts.Weapon.Ammo;
+using ProtoZombie.Scripts.Weapon.Impl;
 using ProtoZombie.Scripts.Weapon.Weapon;
 
 /// <summary>
@@ -201,7 +201,17 @@ public class Player : KinematicBody
     private RayCast _shotRaycast;
 
     /// <summary>
-    /// The shot audio stream
+    /// The weapons spatial node
+    /// </summary>
+    private Spatial _weapons;
+
+    /// <summary>
+    /// The equiped weapon node
+    /// </summary>
+    private Spatial _weaponNode;
+
+    /// <summary>
+    /// The shot audio stream node
     /// </summary>
     private AudioStreamPlayer3D _shotAudioStream;
 
@@ -234,6 +244,11 @@ public class Player : KinematicBody
     /// Determine if in shot or not (used for full-auto shot type)
     /// </summary>
     private bool _inShot;
+
+    /// <summary>
+    /// Determine if in reload or not
+    /// </summary>
+    private bool _inReload;
 
     /// <summary>
     /// Executed when the node is ready
@@ -279,6 +294,7 @@ public class Player : KinematicBody
         _hud = (HUD) GetNode("HUD");
         _interractRaycast = (RayCast) _head.GetNode("InterractRaycast");
         _shotRaycast = (RayCast) _head.GetNode("ShotRaycast");
+        _weapons = (Spatial) _head.GetNode("Weapons");
         _shotAudioStream = (AudioStreamPlayer3D) GetNode("ShotAudioStream");
 
         _movementSpeed = _walkSpeed;
@@ -289,10 +305,13 @@ public class Player : KinematicBody
         _canFetchAmmo = _canFetchAmmo && _canShot;
 
         _inventory.GetReserve(AmmoType.Mm9).SetQuantity(30);
-        _inventory.GetReserve(AmmoType.Acp45).SetQuantity(30);
-        _inventory.AddWeapon(new M1911());
-
+        
+        _inventory.AddWeapon(new USP45());
+        
+        HideAllWeaponNodes();
         UpdateHud();
+        
+        EquipWeapon(0);
     }
 
     /// <summary>
@@ -304,6 +323,14 @@ public class Player : KinematicBody
         if (_canShot)
         {
             ProcessWeapons(delta);
+        }
+
+        if (_inReload && !IsPlayingWeaponAnimation("Reload") && !IsPlayingWeaponAnimation("ReloadEmpty"))
+        {
+            _inReload = false;
+
+            _weapon?.Reload(_inventory.GetReserve(_weapon.GetAmmoType()));
+            UpdateWeaponHud();
         }
 
         ProcessMovement(delta);
@@ -558,19 +585,10 @@ public class Player : KinematicBody
     {
         var collider = (Node) _interractRaycast.GetCollider();
 
-        if (!(collider is BuyableWeapon buyableWeapon) ||
-            _points < buyableWeapon.GetPrice() ||
-            AlreadyHaveWeapon(buyableWeapon.GetWeapon()))
+        if (collider is BuyableWeapon buyableWeapon)
         {
-            return;
+            TryToBuyWeapon(buyableWeapon);
         }
-
-        _inventory.AddWeapon(buyableWeapon.GetWeapon());
-        SetPoints(_points - buyableWeapon.GetPrice());
-
-        _weapon = buyableWeapon.GetWeapon();
-        
-        UpdateHud();
     }
 
     /// <summary>
@@ -584,21 +602,45 @@ public class Player : KinematicBody
     }
 
     /// <summary>
+    /// Try to buy the weapon
+    /// </summary>
+    /// <param name="buyableWeapon">The weapon to try buy</param>
+    private void TryToBuyWeapon(BuyableWeapon buyableWeapon)
+    {
+        if (
+            _points < buyableWeapon.GetPrice() ||
+            AlreadyHaveWeapon(buyableWeapon.GetWeapon())
+        ) return;
+
+        _inventory.AddWeapon(buyableWeapon.BuyWeapon());
+        SetPoints(_points - buyableWeapon.GetPrice());
+
+        EquipWeapon((byte) (_inventory.GetNbWeapons() - 1));
+        PlayWeaponAnimation("FirstEquip");
+    }
+
+    /// <summary>
     /// Perform a shot with the current equiped weapon
     /// </summary>
     private void Shot()
     {
-        if (_weapon == null || _weapon.GetShotType() == ShotType.SemiAuto && _inShot || _weapon.Shot() <= 0) return;
+        if (
+            _weapon == null ||
+            _weapon.GetShotType() == ShotType.SemiAuto &&
+            _inShot ||
+            _inReload ||
+            _weapon.Shot() <= 0
+        ) return;
 
         _inShot = true;
+
+        PlayWeaponAnimation(_weapon.GetAmmoInCharger() == 0 ? "ShotWithoutAmmo" : "ShotWithAmmo");
 
         _shotAudioStream.Play();
 
         UpdateWeaponHud();
 
-        var collider = (Node) _shotRaycast.GetCollider();
-
-        if (collider is Enemy enemy)
+        if ((Node) _shotRaycast.GetCollider() is Enemy enemy)
         {
             ShotOnEnemy(enemy);
         }
@@ -627,9 +669,17 @@ public class Player : KinematicBody
     /// </summary>
     private void Reload()
     {
-        if (_weapon?.Reload(_inventory.GetReserve(_weapon.GetAmmoType())) <= 0) return;
+        if (
+            _inReload ||
+            _inShot ||
+            _weapon == null ||
+            _weapon.GetAmmoInCharger() == _weapon.GetMaxAmmoInCharger() ||
+            _inventory.GetReserve(_weapon.GetAmmoType()).isEmpty()
+        ) return;
 
-        UpdateWeaponHud();
+        _inReload = true;
+
+        PlayWeaponAnimation(_weapon?.GetAmmoInCharger() == 0 ? "ReloadEmpty" : "Reload");
     }
 
     /// <summary>
@@ -639,6 +689,11 @@ public class Player : KinematicBody
     {
         if (_weapon?.Fetch(_inventory.GetReserve(_weapon.GetAmmoType())) <= 0) return;
 
+        if (_weapon?.GetAmmoInCharger() == 0)
+        {
+            PlayWeaponAnimation("IdleEmpty");
+        }
+
         UpdateWeaponHud();
     }
 
@@ -647,25 +702,21 @@ public class Player : KinematicBody
     /// </summary>
     private void SwitchWeaponUp()
     {
-        if (_inventory.GetNbWeapons() <= 0)
+        if (_inventory.GetNbWeapons() <= 0 || _inventory.GetNbWeapons() == 1 && _weapon != null)
         {
             return;
         }
 
         if (_weapon == null)
         {
-            _weapon = _inventory.GetWeapon(0);
+            EquipWeapon(0);
         }
         else
         {
             var nextIndex = (byte) (_inventory.GetWeaponIndex(_weapon) + 1);
 
-            _weapon = _inventory.GetWeapon(_inventory.WeaponExists(nextIndex) ? nextIndex : (byte) 0);
+            EquipWeapon(_inventory.WeaponExists(nextIndex) ? nextIndex : (byte) 0);
         }
-
-        _shotAudioStream.Stream = _weapon.GetShotSound();
-
-        UpdateWeaponHud();
     }
 
     /// <summary>
@@ -673,26 +724,39 @@ public class Player : KinematicBody
     /// </summary>
     private void SwitchWeaponDown()
     {
-        if (_inventory.GetNbWeapons() <= 0)
+        if (_inventory.GetNbWeapons() <= 0 || _inventory.GetNbWeapons() == 1 && _weapon != null)
         {
             return;
         }
 
         if (_weapon == null)
         {
-            _weapon = _inventory.GetWeapon(0);
+            EquipWeapon(0);
         }
         else
         {
             var nextIndex = _inventory.GetWeaponIndex(_weapon) - 1;
 
-            _weapon = nextIndex < 0
-                ? _inventory.GetWeapon((byte) (_inventory.GetNbWeapons() - 1))
-                : _inventory.GetWeapon((byte) nextIndex);
+            EquipWeapon(nextIndex < 0 ? (byte) (_inventory.GetNbWeapons() - 1) : (byte) nextIndex);
         }
+    }
 
+    /// <summary>
+    /// Equip the specified weapon in the inventory (by index)
+    /// </summary>
+    /// <param name="index">The index to equip</param>
+    private void EquipWeapon(byte index)
+    {
+        HideAllWeaponNodes();
+        
+        _weapon = _inventory.GetWeapon(index);
         _shotAudioStream.Stream = _weapon.GetShotSound();
+        _weaponNode = _weapons.GetNode<Spatial>(_weapon.GetName());
+        _inReload = false;
 
+        PlayWeaponAnimation(_weapon.GetAmmoInCharger() == 0 ? "EquipEmpty" : "Equip");
+
+        ShowEquipedWeapon();
         UpdateWeaponHud();
     }
 
@@ -702,7 +766,13 @@ public class Player : KinematicBody
     private void UnequipWeapon()
     {
         _weapon = null;
+        _shotAudioStream.Stream = null;
+        _weaponNode = null;
+        _inReload = false;
 
+        PlayWeaponAnimation(_weapon?.GetAmmoInCharger() == 0 ? "UnequipEmpty" : "Unequip");
+        
+        HideAllWeaponNodes();
         UpdateWeaponHud();
     }
 
@@ -743,7 +813,6 @@ public class Player : KinematicBody
         {
             _hud.SetWeaponInfoVisibility(true);
             _hud.SetWeaponName(_weapon.GetName());
-            _hud.SetWeaponTexture(_weapon.GetTexture());
             _hud.SetAmmoType(_weapon.GetAmmoType());
             _hud.SetCharger(_weapon.GetCharger());
             _hud.SetReserve(_inventory.GetReserve(_weapon.GetAmmoType()));
@@ -752,5 +821,49 @@ public class Player : KinematicBody
         {
             _hud.SetWeaponInfoVisibility(false);
         }
+    }
+
+    private void HideAllWeaponNodes()
+    {
+        _weapons.Visible = false;
+
+        foreach (Spatial weapon in _weapons.GetChildren())
+        {
+            weapon.Visible = false;
+        }
+    }
+
+    private void ShowEquipedWeapon()
+    {
+        if (_weapon == null) return;
+
+        _weapons.Visible = true;
+        _weaponNode.Visible = true;
+    }
+
+    /// <summary>
+    /// Play the specified animation of the current equiped weapon. Do nothing if no equiped weapon
+    /// </summary>
+    /// <param name="animationName"></param>
+    private void PlayWeaponAnimation(string animationName)
+    {
+        if (_weaponNode == null || _weapon == null) return;
+
+        _weaponNode.GetNode<AnimationPlayer>("AnimationPlayer")?.Play($"Weapon_{_weapon.GetName()}_{animationName}");
+    }
+
+    /// <summary>
+    /// Check if the specified animation is currently playing
+    /// </summary>
+    /// <param name="animationName"></param>
+    /// <returns></returns>
+    private bool IsPlayingWeaponAnimation(string animationName)
+    {
+        if (_weaponNode == null || _weapon == null) return false;
+
+        var weaponAnimationPlayer = _weaponNode.GetNode<AnimationPlayer>("AnimationPlayer");
+
+        return weaponAnimationPlayer.IsPlaying() &&
+               weaponAnimationPlayer.CurrentAnimation == $"Weapon_{_weapon.GetName()}_{animationName}";
     }
 }

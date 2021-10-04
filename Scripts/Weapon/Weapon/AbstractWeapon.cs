@@ -54,11 +54,6 @@ namespace ProtoZombie.Scripts.Weapon.Weapon
         private readonly IReserve _charger;
 
         /// <summary>
-        /// The texture
-        /// </summary>
-        private Texture _texture;
-
-        /// <summary>
         /// The shot sound
         /// </summary>
         private AudioStreamSample _shotSound;
@@ -87,11 +82,10 @@ namespace ProtoZombie.Scripts.Weapon.Weapon
         /// <param name="maxAmmoInCharger">The maximum ammo in charger</param>
         /// <param name="ammoType">The ammo type</param>
         /// <param name="shotType">The shot type</param>
-        /// <param name="texture">The texture</param>
         /// <param name="shotSound">The shot sound</param>
         protected AbstractWeapon(string name, float damage, float headMultiplier, float torsoMultiplier,
             float armMultiplier, float legMultiplier, ushort fireRate, ushort maxAmmoInCharger, AmmoType ammoType,
-            ShotType shotType, Texture texture = null, AudioStreamSample shotSound = null)
+            ShotType shotType, AudioStreamSample shotSound = null)
         {
             SetName(name);
             SetDamage(damage);
@@ -101,7 +95,6 @@ namespace ProtoZombie.Scripts.Weapon.Weapon
             SetLegMultiplier(legMultiplier);
             SetFireRate(fireRate);
             SetShotType(shotType);
-            SetTexture(texture);
             SetShotSound(shotSound);
 
             _charger = new BaseReserve(maxAmmoInCharger, ammoType);
@@ -168,11 +161,6 @@ namespace ProtoZombie.Scripts.Weapon.Weapon
         public IReserve GetCharger()
         {
             return _charger;
-        }
-
-        public Texture GetTexture()
-        {
-            return _texture;
         }
 
         public AudioStreamSample GetShotSound()
@@ -268,11 +256,6 @@ namespace ProtoZombie.Scripts.Weapon.Weapon
         public void SetShotType(ShotType value)
         {
             _shotType = value;
-        }
-
-        public void SetTexture(Texture value)
-        {
-            _texture = value;
         }
 
         public void SetShotSound(AudioStreamSample value)
@@ -382,5 +365,7 @@ namespace ProtoZombie.Scripts.Weapon.Weapon
         {
             _deltaShot += delta;
         }
+
+        public abstract object Clone();
     }
 }
