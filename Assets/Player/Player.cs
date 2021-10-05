@@ -186,6 +186,11 @@ public class Player : KinematicBody
     private Camera _camera;
 
     /// <summary>
+    /// The gun camera node
+    /// </summary>
+    private Camera _gunCamera;
+
+    /// <summary>
     /// The HUD control node
     /// </summary>
     private HUD _hud;
@@ -291,27 +296,36 @@ public class Player : KinematicBody
 
         _head = (Spatial) GetNode("Head");
         _camera = (Camera) _head.GetNode("Camera");
+        _gunCamera = (Camera) _camera.GetNode("ViewportContainer/Viewport/GunCamera");
         _hud = (HUD) GetNode("HUD");
         _interractRaycast = (RayCast) _head.GetNode("InterractRaycast");
         _shotRaycast = (RayCast) _head.GetNode("ShotRaycast");
-        _weapons = (Spatial) _head.GetNode("Weapons");
+        _weapons = (Spatial) _camera.GetNode("Weapons");
         _shotAudioStream = (AudioStreamPlayer3D) GetNode("ShotAudioStream");
 
         _movementSpeed = _walkSpeed;
         _life = _maxLife;
         _camera.Fov = _fov;
+        _gunCamera.Fov = _fov;
         _interractRaycast.CastTo = new Vector3(0.0f, -1.5f, 0.0f);
         _shotRaycast.CastTo = new Vector3(0.0f, -1e6f, 0.0f);
         _canFetchAmmo = _canFetchAmmo && _canShot;
 
-        _inventory.GetReserve(AmmoType.Mm9).SetQuantity(30);
-        
         _inventory.AddWeapon(new USP45());
-        
+
         HideAllWeaponNodes();
         UpdateHud();
-        
+
         EquipWeapon(0);
+    }
+
+    /// <summary>
+    /// Executed on every frame
+    /// </summary>
+    /// <param name="delta">The delta time in seconds</param>
+    public override void _Process(float delta)
+    {
+        _gunCamera.GlobalTransform = _camera.GlobalTransform;
     }
 
     /// <summary>
@@ -748,7 +762,7 @@ public class Player : KinematicBody
     private void EquipWeapon(byte index)
     {
         HideAllWeaponNodes();
-        
+
         _weapon = _inventory.GetWeapon(index);
         _shotAudioStream.Stream = _weapon.GetShotSound();
         _weaponNode = _weapons.GetNode<Spatial>(_weapon.GetName());
@@ -771,7 +785,7 @@ public class Player : KinematicBody
         _inReload = false;
 
         PlayWeaponAnimation(_weapon?.GetAmmoInCharger() == 0 ? "UnequipEmpty" : "Unequip");
-        
+
         HideAllWeaponNodes();
         UpdateWeaponHud();
     }
